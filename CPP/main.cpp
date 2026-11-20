@@ -12,18 +12,22 @@ int main() {
     for (int i = 1; i < n+1; i++) {
         numbers[i]=i;
     }
-    while (numbers.size()>1) {
-        for (int i = n+1; i >0; i--) {
+    while (numbers.size()>2) {
+        for (int i = numbers.size()-1; i >0; i--) {
             if (i%2==0) {
                 numbers.erase(numbers.begin()+i);
             }
         }
-        for (int i = n+1; i >0; i--) {
+        if (numbers.size()<=2) break;   // added: only one number left -> stop
+
+        for (int i = numbers.size()-1; i >0; i--) {
             if (i%2!=0) {
                 numbers.erase(numbers.begin()+i);
             }
         }
-        for (int i = n+1; i >0; i--) {
+        if (numbers.size()<=2) break;   // added: only one number left -> stop
+
+        for (int i = numbers.size()-1; i >0; i--) {
             if (i%3==0) {
                 numbers.erase(numbers.begin()+i);
             }
