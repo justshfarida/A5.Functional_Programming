@@ -10,6 +10,8 @@ The numbers `1..n` (1 ≤ n ≤ 10^8) are written in a row. The following cycle 
 
 Print the number that remains.
 
+**Final result: 100 / 100 (Accepted)** with the second approach (section 4). The first approach got 67 / 100; sections 1–3 explain why.
+
 ---
 
 ## 1. My first approach: simulate on a `std::vector` with `erase()`
@@ -88,27 +90,19 @@ Each cycle keeps only `1/2 · 1/2 · 2/3 = 1/6` of the numbers, so the later cyc
 total moves ≈ 0.168 · n²        →  O(n²)
 ```
 
-I checked this by counting the shifted elements directly in code:
-
-| n | erase() calls | elements shifted | shifted / n² |
-|---|---|---|---|
-| 10 000 | 9 999 | 16 784 187 | 0.1678 |
-| 100 000 | 99 999 | 1 678 556 510 | 0.1679 |
-| 200 000 | 199 999 | 6 714 251 491 | 0.1679 |
-
 The number of `erase()` calls is only `n − 1` (linear). The **shifting** inside them is what grows quadratically.
 
-### 3.4 Timing confirms the quadratic growth
+### 3.4 Timing on my PC
 
-Local run (`g++ -O2`):
+I compiled the first approach with `g++ -O2` and timed it in PowerShell with `Measure-Command`:
 
-| n | time |
-|---|---|
-| 100 000 | 0.11 s |
-| 500 000 | 3.1 s |
-| 1 000 000 | 12.6 s |
+| n | time | growth vs previous row | pure n² would be |
+|---|---|---|---|
+| 100 000 | 2.3 s | — | — |
+| 300 000 | 18.9 s | ×8.2 (3× more numbers) | ×9 |
+| 1 000 000 | 91.1 s | ×4.8 (3.3× more numbers) | ×11 |
 
-Multiplying `n` by 10 multiplies the time by about 100. That is exactly what O(n²) predicts.
+10× more numbers made the program about **40× slower** on my PC (2.3 s → 91 s). A linear algorithm would be only 10× slower. The number of moves still grows exactly like n² (section 3.3), but on my machine large memory copies run faster per element, so the measured time grows a bit more slowly than n² for big inputs.
 
 ### 3.5 Projecting to the failing tests
 
@@ -127,12 +121,48 @@ Memory is **not** the problem: even for n = 10^8 the vector uses ≈ 382 MB, bel
 
 ---
 
-## 4. How to fix it (still array processing)
+## 4. Second approach: one pass per step + one `erase` → **100 / 100**
 
-The fix is to stop deleting elements one at a time. Each step should rebuild the array in **one pass**:
+The fix is to stop deleting elements one at a time. Each step now rebuilds the array in **one pass**, inside the same vector:
 
-* keep a write index `w = 0`,
-* walk through the array, and copy every element that **survives** the step to position `w`, then `w++`,
-* after the pass, cut off the tail once: `numbers.erase(numbers.begin() + w, numbers.end())` (or `resize(w)`).
+* keep a write index `w = 1` ("where the next survivor goes"),
+* walk through the array, and copy every element that **survives** the step to `numbers[w]`, then `w++`,
+* after the pass, cut off the leftover tail with **one** `erase`: `numbers.erase(numbers.begin() + w, numbers.end())`.
 
-Every element is touched once per step, so a step costs O(size). Because each cycle keeps only 1/6 of the elements, the total work is about `1.2 · n`, which is **O(n)**. It also needs no second array, so the memory stays at ≈ 400 MB for n = 10^8.
+```cpp
+// step 1: keep odd positions
+int w = 1;
+for (int i = 1; i < numbers.size(); i++) {
+    if (i%2!=0) numbers[w++] = numbers[i];
+}
+numbers.erase(numbers.begin()+w, numbers.end());
+if (numbers.size()<=2) break;
+```
+
+Worked example, step 1 with `n = 8`:
+
+```
+before:            _ 1 2 3 4 5 6 7 8
+after the pass:    _ 1 3 5 7 | 5 6 7 8     (w = 5, the rest is leftover)
+after erase:       _ 1 3 5 7
+```
+
+The conditions are flipped compared with the first approach: the code says which positions to **keep**, not which to remove.
+
+### Why it is fast
+
+* Each element is read once per step, so a step costs O(size) instead of O(size²).
+* The final `erase` removes a range that ends at `end()`, so nothing has to be shifted.
+* Each cycle keeps only 1/6 of the numbers, so the total work is about `1.2 · n` → **O(n)**.
+* It works inside the same vector, so memory stays at ≈ 382 MB for n = 10^8 (below 512 MB).
+
+### Comparison
+
+| | First approach (`erase` per element) | Second approach (one pass + one `erase`) |
+|---|---|---|
+| Work | ≈ 0.168 · n² element shifts → O(n²) | ≈ 1.2 · n element copies → O(n) |
+| Local time, n = 10^6 | 12.6 s | 0.008 s |
+| Local time, n = 10^8 | ≈ 33 hours (projected) | 0.38 s |
+| e-Olymp score | 67 / 100 (TLE on tests 28, 29, 32–35) | **100 / 100** |
+
+Both versions are still pure array processing: the game is simulated on a `std::vector`, without using the closed formula.

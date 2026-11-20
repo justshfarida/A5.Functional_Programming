@@ -14,7 +14,9 @@ int main() {
         numbers[i]=i;
     }
     while (numbers.size()>2) {
-        // step 1: keep odd positions
+        //get rid of even indices.
+        //With w, we keep track of odd indices.
+        //Only increase w when i is odd.
         int w = 1;
         for (int i = 1; i < numbers.size(); i++) {
             if (i%2!=0) numbers[w++] = numbers[i];
@@ -22,7 +24,7 @@ int main() {
         numbers.erase(numbers.begin()+w, numbers.end());
         if (numbers.size()<=2) break;
 
-        // step 2: keep even positions
+        //remove odd indices.
         w = 1;
         for (int i = 1; i < numbers.size(); i++) {
             if (i%2==0) numbers[w++] = numbers[i];
@@ -30,7 +32,7 @@ int main() {
         numbers.erase(numbers.begin()+w, numbers.end());
         if (numbers.size()<=2) break;
 
-        // step 3: keep positions not divisible by 3
+        //remove indices divisible by 3
         w = 1;
         for (int i = 1; i < numbers.size(); i++) {
             if (i%3!=0) numbers[w++] = numbers[i];
