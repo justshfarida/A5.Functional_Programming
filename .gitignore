@@ -2,7 +2,8 @@
 cmake-build-*/
 .idea/
 
-# Haskell build output
-Haskell/*.hi
-Haskell/*.o
-Haskell/*.exe
+# Compiled binaries and object files (C++ and Haskell)
+*.exe
+*.o
+*.obj
+*.hi
