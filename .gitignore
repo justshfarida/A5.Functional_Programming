@@ -1,0 +1,8 @@
+# CLion / CMake build output
+cmake-build-*/
+.idea/
+
+# Haskell build output
+Haskell/*.hi
+Haskell/*.o
+Haskell/*.exe
