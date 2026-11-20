@@ -12,9 +12,20 @@ Print the number that remains.
 
 **Final result: 100 / 100 (Accepted)** with the second approach (section 4). The first approach got 67 / 100; sections 1–3 explain why.
 
+## Files
+
+| File | What it is | e-Olymp score |
+|---|---|---|
+| `main.cpp` | Final solution: one pass + one `erase` per step (section 4) | **100 / 100** |
+| `first_attempt.cpp` | First approach: `erase()` for every removed element (sections 1–3) | 67 / 100 |
+
+Both are array-processing solutions; neither uses the closed formula.
+
 ---
 
 ## 1. My first approach: simulate on a `std::vector` with `erase()`
+
+Code: [`first_attempt.cpp`](first_attempt.cpp)
 
 The idea is to treat the row literally as an array and do exactly what the statement says.
 
@@ -94,7 +105,7 @@ The number of `erase()` calls is only `n − 1` (linear). The **shifting** insid
 
 ### 3.4 Timing on my PC
 
-I compiled the first approach with `g++ -O2` and timed it in PowerShell with `Measure-Command`:
+I compiled the first approach (`first_attempt.cpp`) with `g++ -O2` and timed it in PowerShell with `Measure-Command`:
 
 | n | time | growth vs previous row | pure n² would be |
 |---|---|---|---|
@@ -122,6 +133,8 @@ Memory is **not** the problem: even for n = 10^8 the vector uses ≈ 382 MB, bel
 ---
 
 ## 4. Second approach: one pass per step + one `erase` → **100 / 100**
+
+Code: [`main.cpp`](main.cpp)
 
 The fix is to stop deleting elements one at a time. Each step now rebuilds the array in **one pass**, inside the same vector:
 
