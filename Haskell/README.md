@@ -128,3 +128,24 @@ fails for `n = 2`: `removeEven [1,2]` gives `[1]`, but `removeOdd [1]` then remo
 
 Every test that finished was accepted, so the logic is correct. The failed tests are the largest ones, and the deciding factor is **memory**, not time: memory grows with `n` until it reaches the 512 MB limit.
 
+## 4. Why the largest tests fail
+
+### 4.1 The whole list has to be in memory
+
+`length numbers` has to walk through the **entire** list to count it, so Haskell must actually build every element. Right after that, the same list `numbers` is used again (`head numbers` or `removeEven numbers`). So the whole list has to stay in memory at once, with all of its elements.
+
+### 4.2 A Haskell list uses much more memory per number than an array
+
+A C++ `vector<int>` stores each number in 4 bytes, side by side. A Haskell list stores every element as a separate object in memory (a list cell that points to the next one, plus the number itself), and the garbage collector needs extra room while it copies data.
+
+Using the n estimates from the C++ report (the same tests, where n was estimated from the C++ program's 4 bytes per number), this solution uses roughly **80–90 bytes per number** on e-Olymp:
+
+| Test | Estimated n | Memory | Bytes per number |
+|---|---|---|---|
+| 32 | ≈ 2.2 million | 172.6 MB | ≈ 80 |
+| 28 / 34 | ≈ 4.4 million | 377.5 MB | ≈ 86 |
+| 35 | ≈ 5.5 million | 468.5 MB | ≈ 86 |
+| 29 | ≈ 100 million | would need ≈ 8 GB | — |
+
+So any test with more than about 6 million numbers cannot fit into 512 MB. Tests 36–39 ran out of memory, and test 29 (n = 10^8, the maximum) hit the limits as well.
+
